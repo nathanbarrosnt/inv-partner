@@ -8,12 +8,19 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Service
 public class CdbServiceImpl implements CdbServiceUseCase {
 
     @Override
     public PostFixedCdbResponse calculate(PostFixedCdb data) {
+        var actualDate = LocalDate.now();
+        var differenceInYears =
+                (int) actualDate.until(data.getExpirationDate(), ChronoUnit.YEARS);
+
         // calculating taxes
         var cdiPercentage = data.getCdiPercentage()
                 .divide(BigDecimal.valueOf(100))
@@ -29,7 +36,7 @@ public class CdbServiceImpl implements CdbServiceUseCase {
         // calculating values
         var grossValue = data.getApplicationAmount()
                 .multiply(index)
-                .pow(1)
+                .pow(differenceInYears)
                 .setScale(2, RoundingMode.HALF_EVEN);
 
         var incomeTax = grossValue
